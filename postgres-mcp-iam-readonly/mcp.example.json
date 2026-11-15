@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "postgres-readonly": {
+      "command": "uvx",
+      "args": [
+        "awslabs.postgres-mcp-server@1.2.4",
+        "--connection_method", "PG_WIRE_IAM_PROTOCOL",
+        "--secret_arn", "arn:aws:secretsmanager:ap-northeast-1:<account-id>:secret:cbsr2/mcp_readonly-<suffix>",
+        "--db_cluster_arn", "arn:aws:rds:ap-northeast-1:<account-id>:cluster:cbsr2-iam",
+        "--db_endpoint", "<writer-endpoint>",
+        "--database", "appdb",
+        "--region", "ap-northeast-1",
+        "--db_type", "APG",
+        "--privilege_check", "enforce"
+      ],
+      "env": { "AWS_PROFILE": "<profile>", "AWS_REGION": "ap-northeast-1" }
+    }
+  }
+}
