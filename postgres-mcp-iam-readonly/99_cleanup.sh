@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# 9. Clean up (secret, instance, cluster, security group) and check that nothing is left. Keeps going if a step fails.
+# 9. Clean up (agent role if created, secret, instance, cluster, security group) and check that nothing is left. Keeps going if a step fails.
 set -uo pipefail; cd "$(dirname "$0")"; source ./env.sh
+# If role_create.sh was used, delete the agent role first (needs IAM permissions).
+[ -f role_policy.json ] && bash ./role_delete.sh
 aws secretsmanager delete-secret --secret-id "$RO_SECRET" --force-delete-without-recovery >/dev/null
 aws rds delete-db-instance --db-instance-identifier "$INSTANCE" --skip-final-snapshot >/dev/null
 aws rds wait db-instance-deleted --db-instance-identifier "$INSTANCE"

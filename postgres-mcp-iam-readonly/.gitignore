@@ -4,3 +4,5 @@ mcp.json
 calls_*.json
 verify_*.json
 verify_*.err
+role_trust.json
+role_policy.json

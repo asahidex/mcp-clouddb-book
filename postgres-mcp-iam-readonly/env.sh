@@ -8,4 +8,5 @@ export SG_NAME=${SG_NAME:-cbsr2-iam-sg}
 export DB_NAME=${DB_NAME:-appdb}
 export RO_USER=${RO_USER:-mcp_readonly}
 export RO_SECRET=${RO_SECRET:-cbsr2/mcp_readonly}
+export AGENT_ROLE=${AGENT_ROLE:-cbsr2-mcp-readonly-agent}
 export MCP_VERSION=${MCP_VERSION:-1.2.4}
