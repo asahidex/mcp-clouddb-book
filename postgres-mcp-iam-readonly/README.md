@@ -19,7 +19,7 @@ Aurora Serverless v2 is 0.15 USD per ACU-hour in ap-northeast-1 (as of 2026-11-1
 
 ## Steps
 
-Edit `env.sh` first (profile, Region, names). Then run the scripts in order.
+Edit `env.sh` first: replace `<profile>` with your AWS profile name, and change the Region if you need to. Keep the default resource names, because the SQL and policy examples use them. Then run the scripts in order, from the same terminal.
 
 | Script | What it does |
 |---|---|
@@ -27,9 +27,10 @@ Edit `env.sh` first (profile, Region, names). Then run the scripts in order.
 | `02_dbsetup.sh` | Runs `02_dbsetup.sql` through the Data API with the master user secret: a sample table and the user `mcp_readonly` (`rds_iam`, SELECT only). The last line revokes `TEMPORARY` from `PUBLIC`, because PostgreSQL lets every user create temporary tables by default |
 | `role_create.sh` (optional) | Creates the IAM role `cbsr2-mcp-readonly-agent` with only the three statements in `iam-policy.example.json`. Needs IAM permissions |
 | `as_role.sh <command>` (optional) | Runs one command with that role's temporary credentials, for example `./as_role.sh ./03_check_iam.sh` |
+| `role_delete.sh` (optional) | Deletes that role. `99_cleanup.sh` calls it if `role_policy.json` exists. Run it yourself only when someone else created the role for you |
 | `03_check_iam.sh` | Connects with `psql` and an IAM auth token as `mcp_readonly`. Expect `mcp_readonly` and `8` |
 | `04_mcp_config.sh` | Writes the MCP client configuration to `mcp.json` (see `mcp.example.json`) |
-| `05_verify_mcp.sh` | Starts the MCP server and sends JSON-RPC directly (no LLM), as in the article's Step 5: a SELECT that succeeds, an INSERT that the server's read-only mode rejects, an `EXPLAIN ANALYZE` that runs, and an UPDATE with `--allow_write_query` that the database rejects (the price stays 120) |
+| `05_verify_mcp.sh` | Starts the MCP server and sends JSON-RPC directly (no LLM), as in the table in the article's Step 5: a SELECT that succeeds, an INSERT that the server's read-only mode rejects, an `EXPLAIN ANALYZE` that runs, and an UPDATE with `--allow_write_query` that the database rejects (the price stays 120) |
 | `99_cleanup.sh` | Deletes the agent role (if you ran `role_create.sh`), the secret, instance, cluster, and security group, then prints `[]` for each if nothing is left |
 
 `iam-policy.example.json` is the least-privilege policy for the agent's IAM principal. `role_create.sh` fills in the account ID and the cluster resource ID for you. To write it by hand, replace `<account-id>` and `<cluster-resource-id>` (from `aws rds describe-db-clusters --query 'DBClusters[0].DbClusterResourceId'`).
@@ -52,4 +53,4 @@ The results are the same as with your own profile. The only difference is one WA
 - The user-name secret needs a `password` key even though IAM auth does not use it. Without it, 1.2.4 exits with `Secret does not contain password`.
 - The server calls `rds:DescribeDBClusters` at startup, so the agent's policy needs it. `rds:DescribeDBInstances` is optional (only a warning without it).
 - Public access is for this lab only. In production, run the MCP server where it can reach port 5432 inside the VPC.
-- Generated files (`state.json`, `mcp.json`, `verify_*`, `role_*.json`) contain your account's ARNs and endpoints. They are in `.gitignore`.
+- Generated files (`state.json`, `mcp.json`, `calls_*.json`, `verify_*`, `role_*.json`) contain your account's ARNs and endpoints. They are in `.gitignore`.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 5. Check the MCP server without an LLM over stdio JSON-RPC (initialize, tools/list, run_query). Results go to verify_*.json.
-#    Reproduces the "Verify" table in the article: SELECT, INSERT, EXPLAIN ANALYZE, and UPDATE with --allow_write_query.
+#    Reproduces the table in the article's Step 5: SELECT, INSERT, EXPLAIN ANALYZE, and UPDATE with --allow_write_query.
 set -euo pipefail; cd "$(dirname "$0")"; source ./env.sh
 ARN=$(jq -r .arn state.json); EP=$(jq -r .ep state.json)
 # The agent role has no secretsmanager:DescribeSecret, so read the secret ARN that 01 saved in state.json.
