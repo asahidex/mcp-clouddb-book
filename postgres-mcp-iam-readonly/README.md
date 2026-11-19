@@ -8,14 +8,14 @@ Tested on 2026-11-17 in ap-northeast-1 with `awslabs.postgres-mcp-server` 1.2.4 
 
 ## Prerequisites
 
-- bash, AWS CLI v2, `jq`, `psql`, `curl`, Python 3, and `uv` (for `uvx`)
+- bash, `git`, AWS CLI v2, `jq`, `psql`, `curl`, Python 3, and `uv` (for `uvx`)
 - An AWS account with a default VPC in the Region
 - Permissions to create RDS clusters, security groups, and Secrets Manager secrets
 - Optional: permissions to create and delete an IAM role (for `role_create.sh`)
 
 ## Cost
 
-Aurora Serverless v2 is 0.15 USD per ACU-hour in ap-northeast-1 (as of 2026-11-11). With 0.5 to 2 ACU, one full run (create to delete, about 20 minutes: about 7 to create and 11 to 12 to delete) cost less than 0.1 USD. Run `99_cleanup.sh` when you finish.
+Aurora Serverless v2 is 0.15 USD per ACU-hour in ap-northeast-1 (as of 2026-11-11). With 0.5 to 2 ACU, one full run (create to delete, about 20 minutes: about 7 to create and 10 to 12 to delete) cost less than 0.1 USD. Run `99_cleanup.sh` when you finish.
 
 ## Steps
 
@@ -47,6 +47,24 @@ Without this, 03 to 05 run with your own profile, which usually has far more per
 ```
 
 The results are the same as with your own profile. The only difference is one WARNING in `verify_select.err` about `rds:DescribeDBInstances`, which the role does not have and the server does not need. If you sign in with IAM Identity Center or another role, the trust policy falls back to your account, and you also need `sts:AssumeRole` in your own permissions (or set `TRUST_PRINCIPAL_ARN`).
+
+### If someone else manages IAM
+
+If you cannot create IAM roles yourself, ask your IAM administrator to run two scripts. You run everything else.
+
+1. Run `01_create.sh` and `02_dbsetup.sh` yourself. `role_create.sh` looks up the cluster, so the cluster must exist first.
+2. The administrator clones this repository and moves into this folder. Only `env.sh`, `role_create.sh`, and `role_delete.sh` are used. They need `jq`, the same Region and resource names in `env.sh` as yours, and their own profile name in place of `<profile>` (in AWS CloudShell, leave `env.sh` as it is: no profile is needed there). They also need these permissions: `rds:DescribeDBClusters`, `iam:CreateRole`, `iam:PutRolePolicy`, `iam:GetRolePolicy`, and for the cleanup `iam:DeleteRolePolicy` and `iam:DeleteRole`.
+3. They run this, with your IAM user or role ARN as the principal that may assume the role:
+
+   ```bash
+   TRUST_PRINCIPAL_ARN=<your-principal-arn> ./role_create.sh
+   ```
+
+   It prints the role name and the three statement IDs (`ConnectAsReadOnlyDbUser`, `ReadUserNameSecret`, `ServerStartupClusterCheck`). Without `TRUST_PRINCIPAL_ARN`, the role would trust the administrator, not you.
+4. You run 03 to 05 with `./as_role.sh`, as above. If your principal is a role session, you also need `sts:AssumeRole` on the new role in your own permissions.
+5. When you finish, run `99_cleanup.sh`. It does not delete the role, because `role_policy.json` is not in your folder. Ask the administrator to run `./role_delete.sh`, then check that the role is gone: `aws iam get-role --role-name cbsr2-mcp-readonly-agent` should fail with `NoSuchEntity`.
+
+For what to check before you use this setup on a real database (heavy queries, functions that write, other databases in the cluster, audit, token lifetime), see [PRODUCTION.md](PRODUCTION.md).
 
 ## Notes
 

@@ -1,6 +1,6 @@
 # Shared variables. Every script sources this file first.
-# If credentials come from environment variables (for example, temporary credentials from AssumeRole), do not set a profile.
-if [ -z "${AWS_ACCESS_KEY_ID:-}" ]; then export AWS_PROFILE=${AWS_PROFILE:-<profile>}; fi
+# If credentials come from environment variables (temporary credentials from AssumeRole) or from the container (AWS CloudShell), do not set a profile.
+if [ -z "${AWS_ACCESS_KEY_ID:-}" ] && [ -z "${AWS_CONTAINER_CREDENTIALS_FULL_URI:-}" ]; then export AWS_PROFILE=${AWS_PROFILE:-<profile>}; fi
 export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-ap-northeast-1}
 export CLUSTER=${CLUSTER:-cbsr2-iam}
 export INSTANCE=${INSTANCE:-cbsr2-iam-1}
