@@ -4,7 +4,7 @@ Scripts for the AWS Builder Center article "Connect the Postgres MCP Server to A
 
 They create an Aurora PostgreSQL Serverless v2 cluster, a database user that can only run SELECT, an optional IAM role with only the three permissions the server needs, and the settings that let the [AWS Labs Postgres MCP Server](https://github.com/awslabs/mcp/tree/main/src/postgres-mcp-server) connect as that user with IAM database authentication (`PG_WIRE_IAM_PROTOCOL`). Then they check what is stopped and what runs, and delete everything.
 
-Tested on 2026-11-17 in ap-northeast-1 with `awslabs.postgres-mcp-server` 1.2.4 and Aurora PostgreSQL 17.11.
+Tested on 2026-11-20 in ap-northeast-1 with `awslabs.postgres-mcp-server` 1.2.4 and Aurora PostgreSQL 17.11.
 
 ## Prerequisites
 
@@ -53,7 +53,7 @@ The results are the same as with your own profile. The only difference is one WA
 If you cannot create IAM roles yourself, ask your IAM administrator to run two scripts. You run everything else.
 
 1. Run `01_create.sh` and `02_dbsetup.sh` yourself. `role_create.sh` looks up the cluster, so the cluster must exist first.
-2. The administrator clones this repository and moves into this folder. Only `env.sh`, `role_create.sh`, and `role_delete.sh` are used. They need `jq`, the same Region and resource names in `env.sh` as yours, and their own profile name in place of `<profile>` (in AWS CloudShell, leave `env.sh` as it is: no profile is needed there). They also need these permissions: `rds:DescribeDBClusters`, `iam:CreateRole`, `iam:PutRolePolicy`, `iam:GetRolePolicy`, and for the cleanup `iam:DeleteRolePolicy` and `iam:DeleteRole`.
+2. The administrator clones this repository and moves into this folder. Only `env.sh`, `role_create.sh`, and `role_delete.sh` are used. They need `jq`, the same Region and resource names in `env.sh` as yours, and their own profile name in place of `<profile>` (in AWS CloudShell, leave `env.sh` as it is: no profile is needed there. CloudShell sets `AWS_DEFAULT_REGION` to the console's Region, so open it in the cluster's Region). They also need these permissions: `rds:DescribeDBClusters`, `iam:CreateRole`, `iam:PutRolePolicy`, `iam:GetRolePolicy`, and for the cleanup `iam:DeleteRolePolicy` and `iam:DeleteRole`.
 3. They run this, with your IAM user or role ARN as the principal that may assume the role:
 
    ```bash
