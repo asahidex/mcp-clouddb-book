@@ -15,7 +15,7 @@ Tested on 2026-11-20 in ap-northeast-1 with `awslabs.postgres-mcp-server` 1.2.4 
 
 ## Cost
 
-Aurora Serverless v2 is 0.15 USD per ACU-hour in ap-northeast-1 (as of 2026-11-11). With 0.5 to 2 ACU, one full run (create to delete, about 20 minutes: about 7 to create and 10 to 12 to delete) cost less than 0.1 USD. Run `99_cleanup.sh` when you finish.
+Aurora Serverless v2 is 0.15 USD per ACU-hour in ap-northeast-1 (as of 2026-11-11). With 0.5 to 2 ACU, one full run (create to delete, about 20 minutes: 7 to 8 to create and 10 to 15 to delete) cost less than 0.1 USD. Run `99_cleanup.sh` when you finish.
 
 ## Steps
 
@@ -27,7 +27,7 @@ Edit `env.sh` first: replace `<profile>` with your AWS profile name, and change 
 | `02_dbsetup.sh` | Runs `02_dbsetup.sql` through the Data API with the master user secret: a sample table and the user `mcp_readonly` (`rds_iam`, SELECT only). The last line revokes `TEMPORARY` from `PUBLIC`, because PostgreSQL lets every user create temporary tables by default |
 | `role_create.sh` (optional) | Creates the IAM role `cbsr2-mcp-readonly-agent` with only the three statements in `iam-policy.example.json`. Needs IAM permissions |
 | `as_role.sh <command>` (optional) | Runs one command with that role's temporary credentials, for example `./as_role.sh ./03_check_iam.sh` |
-| `role_delete.sh` (optional) | Deletes that role. `99_cleanup.sh` calls it if `role_policy.json` exists. Run it yourself only when someone else created the role for you |
+| `role_delete.sh` (optional) | Deletes that role. `99_cleanup.sh` calls it if `role_policy.json` exists. Whoever ran `role_create.sh` runs it: if an administrator created the role for you, they run it |
 | `03_check_iam.sh` | Connects with `psql` and an IAM auth token as `mcp_readonly`. Expect `mcp_readonly` and `8` |
 | `04_mcp_config.sh` | Writes the MCP client configuration to `mcp.json` (see `mcp.example.json`) |
 | `05_verify_mcp.sh` | Starts the MCP server and sends JSON-RPC directly (no LLM), as in the table in the article's Step 5: a SELECT that succeeds, an INSERT that the server's read-only mode rejects, an `EXPLAIN ANALYZE` that runs, and an UPDATE with `--allow_write_query` that the database rejects (the price stays 120) |
@@ -46,7 +46,7 @@ Without this, 03 to 05 run with your own profile, which usually has far more per
 ./as_role.sh ./05_verify_mcp.sh
 ```
 
-The results are the same as with your own profile. The only difference is one WARNING in `verify_select.err` about `rds:DescribeDBInstances`, which the role does not have and the server does not need. If you sign in with IAM Identity Center or another role, the trust policy falls back to your account, and you also need `sts:AssumeRole` in your own permissions (or set `TRUST_PRINCIPAL_ARN`).
+The results are the same as with your own profile. The only difference is one WARNING line in each `verify_*.err` about `rds:DescribeDBInstances`, which the role does not have and the server does not need. If you sign in with IAM Identity Center or another role, the trust policy falls back to your account, and you also need `sts:AssumeRole` in your own permissions (or set `TRUST_PRINCIPAL_ARN`).
 
 ### If someone else manages IAM
 
